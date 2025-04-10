@@ -1,59 +1,49 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import React, { useContext, useEffect } from 'react';
+
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import axios from 'axios';
- 
+import { certificateContext } from '@/store/CertificateContext';
+import { useQuill } from 'react-quilljs';
+import 'quill/dist/quill.snow.css'
 
-function Form() {
-  const [formData, setFormData] = useState({
-    name: '',
-    dob: '',
-    dod: '',
-  });
-  const [loading, setLoading] = useState(false);
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+function Form() { 
+  const { updateFormField, handleImageChange, setOtherDetails } =
+  useContext(certificateContext);
+  const modules = {
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    axios
-      .post(
-        'http://localhost:5000/api/certificate/generate',
-        formData
-      )
-
-      .then((res) => {
-        console.log(
-          `response from server : ${res.data.message}`
-        );
-      })
-      .catch((err) => {
-        console.log(
-          err.response?.data?.err ||
-            'An error occurred'
-        );
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+      toolbar:[
+        [{header: [1, 2 ,3 , false]}],
+        [{'align':[]}],
+        ['bold', 'italic', 'underline'],
+        [{list: 'ordered'}, {list: 'bullet'}],
+        ['link'],
+        ['clean']
+      ]
+    }
+    const { quill, quillRef } = useQuill({modules: modules });
+    useEffect(()=>{
+      if(quill){
+        quill.on('text-change', ()=>{
+          setOtherDetails(quill.root.innerHTML);
+          
+        })
       
+      }
+    },[quill])
+
+  const handleChange = (e) => {
+    updateFormField(
+      e.target.name,
+      e.target.value
+    );
+    
   };
 
   return (
     <>
       <div className="p-4 max-w-lg mx-auto">
-        <form
-          className="space-y-4"
-          onSubmit={handleSubmit}
-        >
-          <div>
+        <form className="space-y-4">
+          <div className='grid w-full gap-1.5'>
             <Label
               htmlFor="name"
               className="flex text-xl"
@@ -69,7 +59,7 @@ function Form() {
               required
             />
           </div>
-          <div>
+          <div className='grid w-full gap-1.5'>
             <Label
               htmlFor="dob"
               className="flex text-xl"
@@ -79,12 +69,13 @@ function Form() {
             <Input
               id="dob"
               type="date"
+              
               name="dob"
               onChange={handleChange}
               required
             />
           </div>
-          <div>
+          <div className='grid w-full gap-1.5'>
             <Label
               htmlFor="dod"
               className="flex text-xl"
@@ -98,7 +89,7 @@ function Form() {
               onChange={handleChange}
             />
           </div>
-          <div>
+          <div className='grid w-full gap-1.5'>
             <Label
               htmlFor="image"
               className="flex text-xl"
@@ -109,17 +100,26 @@ function Form() {
               id="image"
               type="file"
               accept=".jpg, .jpeg, .png"
+              onChange={(e) =>
+                handleImageChange(
+                  e.target.files[0]
+                )
+              }
             />
           </div>
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={loading}
-          >
-            {loading
-              ? 'Generating..'
-              : 'Generate'}
-          </Button>
+          <div className='grid w-full gap-1.5'>
+            <Label
+              htmlFor="otherDetails"
+              className="flex text-xl"
+            >
+              Add your other details
+            </Label>
+            
+              <div id='otherDetails' ref={quillRef} className='border-gray-600 rounded-md min-h-60 '>
+
+              </div>
+             
+          </div>
         </form>
       </div>
     </>

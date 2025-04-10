@@ -1,13 +1,14 @@
-import { useEffect, useState } from 'react';
-import { Card, CardContent } from './ui/card';
+import { useContext, useEffect, useState } from 'react';
+import { Card } from './ui/card';
 
 import axios from 'axios';
+import { certificateContext } from '@/store/CertificateContext';
 
 function Templates() {
   const [templates, setTemplates] = useState([]);
-  const [selectTemplate, setSelectTemplate] =
-    useState('');
-  useEffect(() => {
+   const {selectTemplate, setSelectTemplate} = useContext(certificateContext)
+   
+   useEffect(() => {
     axios
       .get('http://localhost:5000/api/templates')
       .then((res) => {
@@ -18,19 +19,22 @@ function Templates() {
   }, []);
   return (
     <div>
-      <h2 className="font-bold text-4xl text-center my-11">
+      <h2 className="font-bold md:text-5xl text-4xl text-center mt-11 mb-4">
         Pick Your Template to Generate Your Poster
       </h2>
-      <div className="grid gap-4 grid-cols-2  lg:grid-cols-3">
+      <p className='text-lg mb-11 text-gray-600 md:px-16'>Select the template, enter your details and hit Generate Certificate to download your poster </p>
+      <div className="grid gap-4 grid-cols-2 max-w-lg lg:grid-cols-3 place-self-center shadow-xl">
         {templates.length > 0 ? (
           templates.map((template, i) => (
             <Card 
             key={i}
             onClick={()=>{setSelectTemplate(template)}}
-            className={``}
+            className={` border-red-400`}
              >
               <img
                 alt={template} 
+                
+                className='w-full overflow-hidden '
                 src={`http://localhost:5000/templates/${template}`}
               />
             </Card>
