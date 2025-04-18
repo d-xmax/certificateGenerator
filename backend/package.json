@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "server": "node app.js",
-    "start": "nodemon app.js"
+    "start": "rm -rf ./node_modules/.cache && nodemon app.js"
   },
   "author": "dx",
   "license": "ISC",

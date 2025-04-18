@@ -4,10 +4,16 @@ const {
   generateCertificate,
   generateTemplates,
 } = require('../controller/certificateController.js');
+const multer = require('multer');
+
+// handle file upload
+const upload = multer({dest: 'uploads/'})
+
 
 // certificate generate
 router.post(
   '/certificate/generate',
+  upload.single("image"),
   generateCertificate
 );
 // certificate template
