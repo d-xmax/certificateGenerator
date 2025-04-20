@@ -2,13 +2,13 @@ const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
 const templatePositions = require('./templatePositions');
-const htmlParser = require('htmlparser2');
+const puppeteer = require('puppeteer');
+const ejs = require('ejs');
+// const otherDetailsTemplatePath = require('../utils/otherDetailsTemplate.ejs')
 const {
   createCanvas,
   loadImage,
 } = require('canvas');
-// const { width, height } = require('pdfkit/js/page');
-
 
 const createPDF = (
   name,
@@ -42,6 +42,32 @@ const createPDF = (
         new Error('Invalid template name')
       );
     }
+
+    const otherDetailsTemplatePath = path.join(
+      __dirname,
+      '../utils/otherDetailsTemplate.ejs'
+    );
+    //html parse to ejs file  
+    const renderEjsFile = await ejs.renderFile(
+      otherDetailsTemplatePath,
+      { parseContent: otherDetails }
+    );
+    // puppeteer package 
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+    await page.setContent(renderEjsFile, {
+      waitUntil: 'domcontentloaded',
+    });
+    console.log(otherDetailsTemplatePath);
+    console.log(renderEjsFile);
+
+    const screenshot = await page.screenshot({
+      encoding: 'binary', 
+
+    });
+    // const finalContent = await page.content();
+    await browser.close();
+
     const pageWidth = 595;
     const pageHeight = 842;
     const templatePath = path.join(
@@ -95,7 +121,7 @@ const createPDF = (
         ctx.fillText(value, x, y);
       }
     );
-    const parser = new htmlParser.Parser(otherDetails)
+
     const userImage = await loadImage(image.path);
 
     const { x, y, width, height } =
@@ -129,6 +155,13 @@ const createPDF = (
       newHeight
     );
 
+    // ctx.drawImage(
+    //   screenshot,
+    //   x,
+    //   y,
+    //   width,
+    //   height
+    // );
     ctx.restore();
 
     const finalImage = canvas.toBuffer(
@@ -159,8 +192,10 @@ const createPDF = (
       width: pageWidth,
       height: pageHeight,
     });
-    doc.text(otherDetails, 200, 400);
 
+    doc.image(screenshot, 250, 250, {
+      width: pageWidth,
+    });
     doc.pipe(stream);
     doc.end();
   });
